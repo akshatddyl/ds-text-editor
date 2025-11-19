@@ -267,7 +267,7 @@
 
     <div class="sidebar">
         <div class="brand">
-            DS EDITOR
+            DS TEXT EDITOR
             <button style="background:none;border:none;color:inherit;cursor:pointer;" onclick="toggleTheme()">◑</button>
         </div>
         <div class="file-list" id="fileList"></div>
@@ -310,13 +310,7 @@
             <span>Wd <span id="wordCount">0</span></span>
         </div>
     </div>
-
     <script>
-        /**
-         * CLIENT-SIDE BACKEND SIMULATION
-         * This allows the UI to work in the preview window without a running Node.js server.
-         * It mimics the exact behavior of server.js
-         */
         class MockBackend {
             constructor() {
                 this.files = {
