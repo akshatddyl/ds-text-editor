@@ -5,46 +5,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DS Text Editor</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #1e1e1e;
-            --bg-sidebar: #252526;
-            --bg-active: #37373d;
-            --text-main: #cccccc;
-            --accent: #007acc;
-            --border: #3e3e42;
+            --bg-app: #0f0c29;
+            --bg-sidebar: rgba(30, 30, 46, 0.9);
+            --bg-editor: rgba(255, 255, 255, 0.05);
+            --text-main: #e0e0e0;
+            --text-muted: #949494;
+            --accent: #7b2cbf;
+            --border: rgba(255, 255, 255, 0.1);
+            --font-ui: 'Inter', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-app: #f0f2f5;
+            --bg-sidebar: #ffffff;
+            --bg-editor: #ffffff;
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+            --accent: #0984e3;
+            --border: #dfe6e9;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Consolas', 'Monaco', monospace;
         }
 
         body {
-            display: flex;
+            font-family: var(--font-ui);
             height: 100vh;
-            background-color: var(--bg-dark);
+            display: flex;
+            background: var(--bg-app);
             color: var(--text-main);
             overflow: hidden;
         }
 
-        /* Sidebar */
+        /* SIDEBAR */
         .sidebar {
-            width: 250px;
-            background-color: var(--bg-sidebar);
+            width: 260px;
+            background: var(--bg-sidebar);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            padding: 15px;
         }
 
-        .sidebar-header {
-            padding: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .brand {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
         }
 
         .file-list {
@@ -53,90 +70,63 @@
         }
 
         .file-item {
-            padding: 8px 20px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 14px;
+            color: var(--text-muted);
         }
 
         .file-item:hover {
-            background-color: #2a2d2e;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
         }
 
         .file-item.active {
-            background-color: var(--bg-active);
+            background: var(--accent);
             color: white;
         }
 
-        .file-actions button {
-            background: none;
-            border: none;
-            color: #888;
+        .file-actions {
+            opacity: 0.5;
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-item:hover .file-actions {
+            opacity: 1;
+        }
+
+        .file-actions span {
             cursor: pointer;
-            margin-left: 5px;
+            font-size: 14px;
         }
 
-        .file-actions button:hover {
-            color: white;
-        }
-
-        .sidebar-controls {
-            padding: 10px;
-            border-top: 1px solid var(--border);
-        }
-
-        .btn {
+        .btn-sidebar {
             width: 100%;
-            padding: 8px;
-            background-color: var(--accent);
-            color: white;
-            border: none;
+            padding: 10px;
+            margin-top: 10px;
+            background: transparent;
+            border: 1px dashed var(--border);
+            color: var(--text-muted);
             cursor: pointer;
+            border-radius: 6px;
         }
 
-        /* Main Editor */
+        /* MAIN AREA */
         .main {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
 
-        /* Tabs */
-        .tabs {
-            display: flex;
-            background-color: var(--bg-sidebar);
-            overflow-x: auto;
-            height: 35px;
-        }
-
-        .tab {
-            padding: 8px 20px;
-            background-color: #2d2d2d;
-            color: #969696;
-            cursor: pointer;
-            border-right: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-        }
-
-        .tab.active {
-            background-color: var(--bg-dark);
-            color: white;
-            border-top: 2px solid var(--accent);
-        }
-
-        .tab-close {
-            margin-left: 8px;
-            font-size: 12px;
-        }
-
-        /* Toolbar */
         .toolbar {
-            padding: 5px 10px;
-            background-color: var(--bg-dark);
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.1);
             border-bottom: 1px solid var(--border);
             display: flex;
             gap: 10px;
@@ -144,408 +134,646 @@
         }
 
         .toolbar input {
-            background: #3c3c3c;
-            border: 1px solid #555;
-            color: white;
-            padding: 4px;
+            background: var(--bg-editor);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 4px;
+            outline: none;
         }
 
-        .toolbar button {
-            background: #333;
-            color: white;
-            border: 1px solid #555;
-            padding: 4px 8px;
+        .btn-tool {
+            background: var(--bg-editor);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 12px;
         }
 
-        .toolbar button:hover {
-            background: #444;
+        .btn-tool:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
         }
 
-        /* Editor Area */
-        #editor {
+        .btn-tool.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* EDITOR GRID (SPLIT VIEW) */
+        .editor-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1px;
+            background: var(--border);
+            padding: 0;
+        }
+
+        .editor-container.split {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .editor-pane {
+            background: var(--bg-app);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .editor-pane.focused {
+            box-shadow: inset 0 0 0 2px var(--accent);
+        }
+
+        .pane-header {
+            padding: 5px 10px;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .editor-content {
             flex: 1;
             padding: 20px;
             outline: none;
             overflow-y: auto;
+            font-family: var(--font-code);
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
             white-space: pre-wrap;
         }
 
-        /* Highlighting & Suggestions */
-        .highlight {
-            background-color: #6b4e00;
-            color: white;
-        }
-
+        /* AUTOCOMPLETE */
         #suggestion-box {
             position: absolute;
-            background: #2d2d30;
-            border: 1px solid #454545;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
             display: none;
-            z-index: 1000;
-            width: 150px;
+            z-index: 2000;
+            min-width: 150px;
+            border-radius: 6px;
+            backdrop-filter: blur(10px);
         }
 
         .suggestion-item {
-            padding: 5px 10px;
+            padding: 8px 12px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .suggestion-item:hover,
-        .suggestion-item.selected {
-            background-color: var(--accent);
-            color: white;
-        }
-
-        /* Logs */
-        .status-bar {
-            height: 25px;
+        .suggestion-item:hover {
             background: var(--accent);
             color: white;
+        }
+
+        /* FOOTER */
+        .stats-bar {
+            height: 30px;
+            background: var(--bg-sidebar);
+            border-top: 1px solid var(--border);
             display: flex;
             align-items: center;
-            padding: 0 10px;
-            font-size: 12px;
+            justify-content: flex-end;
+            padding: 0 20px;
+            font-size: 11px;
+            gap: 15px;
+            color: var(--text-muted);
+        }
+
+        /* MODE BADGE */
+        .mode-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #ff9f43;
+            color: #222;
+            font-weight: bold;
+            display: none;
+        }
+
+        .mode-badge.visible {
+            display: inline-block;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-header">Explorer</div>
-        <div class="file-list" id="fileList">
-            <!-- Files injected here -->
+        <div class="brand">
+            DS EDITOR
+            <button style="background:none;border:none;color:inherit;cursor:pointer;" onclick="toggleTheme()">◑</button>
         </div>
-        <div class="sidebar-controls">
-            <button class="btn" onclick="createNewFile()">+ New File</button>
-        </div>
+        <div class="file-list" id="fileList"></div>
+        <button class="btn-sidebar" onclick="createNewFile()">+ New File</button>
     </div>
 
-    <!-- Main Content -->
     <div class="main">
-        <!-- Tabs -->
-        <div class="tabs" id="tabsContainer"></div>
-
-        <!-- Toolbar for Search/Replace -->
         <div class="toolbar">
-            <input type="text" id="searchInput" placeholder="Search (Boyer-Moore)">
-            <button onclick="performSearch()">Find</button>
-            <input type="text" id="replaceInput" placeholder="Replace">
-            <button onclick="performReplace()">Replace</button>
-            <span style="flex:1"></span>
-            <!-- Added explicit type="button" to prevent form submission behavior -->
-            <button type="button" onclick="triggerUndo()">Undo (Ctrl+Z)</button>
-            <button type="button" onclick="triggerRedo()">Redo (Ctrl+Y)</button>
+            <input type="text" id="searchInput" placeholder="Find...">
+            <button class="btn-tool" onclick="performSearch()">Search</button>
+            <input type="text" id="replaceInput" placeholder="Replace...">
+            <button class="btn-tool" onclick="performReplace()">Replace</button>
+            <div style="flex:1"></div>
+            <span id="modeBadge" class="mode-badge" title="Running in Browser Simulation Mode (No Backend)">SIMULATION
+                MODE</span>
+            <button class="btn-tool" id="btnSplit" onclick="toggleSplit()">◫ Split View</button>
+            <!-- Spell Check Button Removed Here -->
+            <button class="btn-tool" onclick="triggerUndo()">↶ Undo</button>
+            <button class="btn-tool" onclick="triggerRedo()">↷ Redo</button>
         </div>
 
-        <!-- Editor -->
-        <div id="editor" contenteditable="true" spellcheck="false"></div>
+        <div class="editor-container" id="editorContainer">
+            <!-- Left Pane -->
+            <div class="editor-pane focused" id="pane1" onclick="setFocus('pane1')">
+                <div class="pane-header" id="header1">No File</div>
+                <div class="editor-content" id="editor1" contenteditable="true" spellcheck="false"></div>
+            </div>
+            <!-- Right Pane (Hidden by default) -->
+            <div class="editor-pane" id="pane2" onclick="setFocus('pane2')" style="display: none;">
+                <div class="pane-header" id="header2">No File</div>
+                <div class="editor-content" id="editor2" contenteditable="true" spellcheck="false"></div>
+            </div>
+        </div>
 
-        <!-- Autocomplete Popup -->
         <div id="suggestion-box"></div>
 
-        <!-- Footer / Logs -->
-        <div class="status-bar" id="statusBar">Ready - DS Backend Connected</div>
+        <div class="stats-bar">
+            <span id="statusMsg">Ready</span>
+            <span>Ln <span id="lineCount">0</span></span>
+            <span>Wd <span id="wordCount">0</span></span>
+        </div>
     </div>
 
     <script>
-        let currentFile = null;
-        let openFiles = [];
+        /**
+         * CLIENT-SIDE BACKEND SIMULATION
+         * This allows the UI to work in the preview window without a running Node.js server.
+         * It mimics the exact behavior of server.js
+         */
+        class MockBackend {
+            constructor() {
+                this.files = {
+                    'demo.txt': {
+                        content: "Welcome to DS Editor (Simulation Mode).\nBecause no backend was found, all Data Structures (Rope, Trie, Stack) are running right here in your browser!",
+                        history: this.createHistory()
+                    }
+                };
+                this.trie = this.createTrie();
+                this.initTrie();
+            }
+
+            createHistory() {
+                return { undoStack: [], redoStack: [], maxSize: 50 };
+            }
+
+            createTrie() {
+                return { root: { children: {}, isEndOfWord: false } };
+            }
+
+            initTrie() {
+                const keywords = ["function", "return", "const", "let", "var", "import", "class", "console", "log", "async", "await", "structure", "rope", "trie", "stack", "hello", "world"];
+                keywords.forEach(w => this.trieInsert(w));
+            }
+
+            trieInsert(word) {
+                let node = this.trie.root;
+                for (let char of word.toLowerCase()) {
+                    if (!node.children[char]) node.children[char] = { children: {}, isEndOfWord: false };
+                    node = node.children[char];
+                }
+                node.isEndOfWord = true;
+            }
+
+            trieFind(prefix) {
+                let node = this.trie.root;
+                for (let char of prefix.toLowerCase()) {
+                    if (!node.children[char]) return [];
+                    node = node.children[char];
+                }
+                return this._trieCollect(node, prefix.toLowerCase());
+            }
+
+            _trieCollect(node, prefix) {
+                let res = [];
+                if (node.isEndOfWord) res.push(prefix);
+                for (let char in node.children) {
+                    res = res.concat(this._trieCollect(node.children[char], prefix + char));
+                }
+                return res.slice(0, 8);
+            }
+
+            handleRequest(url, method, body) {
+                const path = url.replace('/api/', '');
+
+                // 1. LIST FILES
+                if (path === 'files' && method === 'GET') {
+                    return Object.keys(this.files);
+                }
+
+                // 2. CREATE/RENAME
+                if (path === 'files' && method === 'POST') {
+                    const { name, oldName } = body;
+                    if (oldName && this.files[oldName]) {
+                        this.files[name] = this.files[oldName];
+                        delete this.files[oldName];
+                    } else {
+                        this.files[name] = { content: "", history: this.createHistory() };
+                    }
+                    return { success: true };
+                }
+
+                // 3. GET CONTENT
+                if (path.startsWith('file/') && method === 'GET') {
+                    const name = path.split('/')[1];
+                    return this.files[name] ? { content: this.files[name].content } : null;
+                }
+
+                // 4. DELETE
+                if (path.startsWith('file/') && method === 'DELETE') {
+                    const name = path.split('/')[1];
+                    delete this.files[name];
+                    return { success: true };
+                }
+
+                // 5. UPDATE (Rope Logic Sim)
+                if (path.includes('/update') && method === 'POST') {
+                    const name = path.split('/')[1];
+                    const f = this.files[name];
+                    if (f && f.content !== body.text) {
+                        this.saveState(f, f.content);
+                        f.content = body.text;
+                        // Learning
+                        body.text.split(/[\s\n\.\,\!\?]+/).forEach(w => {
+                            if (w.length > 2) this.trieInsert(w);
+                        });
+                    }
+                    return { success: true };
+                }
+
+                // 6. UNDO
+                if (path.includes('/undo') && method === 'POST') {
+                    const name = path.split('/')[1];
+                    const f = this.files[name];
+                    if (f && f.history.undoStack.length > 0) {
+                        const prev = f.history.undoStack.pop();
+                        f.history.redoStack.push(f.content);
+                        f.content = prev;
+                        return { content: prev };
+                    }
+                    return { content: f ? f.content : "" };
+                }
+
+                // 7. REDO
+                if (path.includes('/redo') && method === 'POST') {
+                    const name = path.split('/')[1];
+                    const f = this.files[name];
+                    if (f && f.history.redoStack.length > 0) {
+                        const next = f.history.redoStack.pop();
+                        f.history.undoStack.push(f.content);
+                        f.content = next;
+                        return { content: next };
+                    }
+                    return { content: f ? f.content : "" };
+                }
+
+                // 8. AUTOCOMPLETE
+                if (path === 'autocomplete') {
+                    return { suggestions: this.trieFind(body.prefix) };
+                }
+
+                // 9. SEARCH (Boyer-Moore Sim)
+                if (path === 'search') {
+                    // Simple JS search for sim
+                    const indices = [];
+                    let pos = body.text.indexOf(body.pattern);
+                    while (pos !== -1) { indices.push(pos); pos = body.text.indexOf(body.pattern, pos + 1); }
+                    return { indices };
+                }
+
+                // Mock Spell Check removed
+
+                return null;
+            }
+
+            saveState(fileObj, text) {
+                fileObj.history.undoStack.push(text);
+                if (fileObj.history.undoStack.length > 50) fileObj.history.undoStack.shift();
+                fileObj.history.redoStack = [];
+            }
+        }
+
+        // --- APP STATE ---
+        const mockBackend = new MockBackend();
+        let useMock = false; // Will be auto-detected
+
+        let files = [];
+        let activePaneId = 'pane1';
+        let paneState = {
+            pane1: { file: null, editor: document.getElementById('editor1') },
+            pane2: { file: null, editor: document.getElementById('editor2') }
+        };
+        let isSplit = false;
         let debounceTimer = null;
-        const editor = document.getElementById('editor');
+        let currentPrefixStart = 0;
         const suggestionBox = document.getElementById('suggestion-box');
 
-        // --- INITIALIZATION ---
-        async function loadFiles() {
+        // --- API WRAPPER (HANDLES BLOB/LOCAL ISSUES) ---
+        async function apiCall(url, options = {}) {
+            // 1. Check if we are in a blob/file environment where relative fetch fails
+            if (window.location.protocol === 'blob:' || window.location.protocol === 'file:' || useMock) {
+                useMock = true;
+                document.getElementById('modeBadge').classList.add('visible');
+                // Simulate network delay for realism
+                await new Promise(r => setTimeout(r, 50));
+                const body = options.body ? JSON.parse(options.body) : {};
+                const result = mockBackend.handleRequest(url, options.method || 'GET', body);
+
+                if (result) return { ok: true, json: async () => result };
+                return { ok: false };
+            }
+
+            // 2. Try Real Fetch
             try {
-                const res = await fetch('/api/files');
-                const files = await res.json();
-                const list = document.getElementById('fileList');
-                list.innerHTML = '';
-                files.forEach(f => {
-                    const div = document.createElement('div');
-                    div.className = `file-item ${currentFile === f ? 'active' : ''}`;
-                    div.innerHTML = `
-                        <span onclick="openFile('${f}')">📄 ${f}</span>
-                        <div class="file-actions">
-                            <button onclick="renameFile('${f}')">✎</button>
-                            <button onclick="deleteFile('${f}')">🗑</button>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-                // Open the default file if none is open
-                if (!currentFile && files.length > 0) {
-                    openFile(files[0]);
+                const res = await fetch(url, options);
+                return res;
+            } catch (e) {
+                console.warn("Backend unreachable, switching to Simulation Mode.", e);
+                useMock = true; // Fallback for subsequent requests
+                document.getElementById('modeBadge').classList.add('visible');
+                return apiCall(url, options); // Retry with mock
+            }
+        }
+
+        // --- SPLIT VIEW LOGIC ---
+        function toggleSplit() {
+            isSplit = !isSplit;
+            const container = document.getElementById('editorContainer');
+            const pane2 = document.getElementById('pane2');
+            const btn = document.getElementById('btnSplit');
+
+            if (isSplit) {
+                container.classList.add('split');
+                pane2.style.display = 'flex';
+                btn.classList.add('active');
+                if (!paneState.pane2.file && paneState.pane1.file) {
+                    openFile(paneState.pane1.file, 'pane2');
                 }
-            } catch (error) {
-                log('Error loading files. Is the server running?');
-                console.error('Fetch error:', error);
+                setFocus('pane2');
+            } else {
+                container.classList.remove('split');
+                pane2.style.display = 'none';
+                btn.classList.remove('active');
+                setFocus('pane1');
             }
         }
 
-        async function openFile(name) {
-            currentFile = name;
-            if (!openFiles.includes(name)) openFiles.push(name);
-            renderTabs();
-            loadFiles();
-
-            try {
-                const res = await fetch(`/api/file/${name}`);
-                const data = await res.json();
-                editor.innerText = data.content;
-                log(`Opened ${name}`);
-            } catch (error) {
-                log(`Error opening file ${name}`);
-                console.error('Fetch error:', error);
-            }
+        function setFocus(paneId) {
+            activePaneId = paneId;
+            document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('focused'));
+            document.getElementById(paneId).classList.add('focused');
         }
 
-        function renderTabs() {
-            const container = document.getElementById('tabsContainer');
-            container.innerHTML = openFiles.map(f => `
-                <div class="tab ${f === currentFile ? 'active' : ''}" onclick="openFile('${f}')">
-                    ${f} <span class="tab-close" onclick="closeTab(event, '${f}')">✕</span>
-                </div>
-            `).join('');
+        function getActiveEditor() { return paneState[activePaneId].editor; }
+        function getActiveFile() { return paneState[activePaneId].file; }
+
+        // --- FILE OPERATIONS ---
+        async function loadFileList() {
+            const res = await apiCall('/api/files');
+            if (!res.ok) return;
+            files = await res.json();
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            files.forEach(f => {
+                const activeClass = (paneState.pane1.file === f || paneState.pane2.file === f) ? 'active' : '';
+                list.innerHTML += `
+                    <div class="file-item ${activeClass}" onclick="openFile('${f}', '${activePaneId}')">
+                        <span>${f}</span>
+                        <div class="file-actions">
+                            <span onclick="renameFile(event, '${f}')" title="Rename">✎</span>
+                            <span onclick="deleteFile(event, '${f}')" title="Delete">×</span>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        function closeTab(e, name) {
-            e.stopPropagation();
-            openFiles = openFiles.filter(f => f !== name);
-            if (currentFile === name) currentFile = openFiles[0] || null;
-            if (currentFile) openFile(currentFile);
-            else editor.innerText = "";
-            renderTabs();
+        async function openFile(name, targetPaneId) {
+            const res = await apiCall(`/api/file/${name}`);
+            if (!res.ok) return;
+            const data = await res.json();
+
+            paneState[targetPaneId].file = name;
+            paneState[targetPaneId].editor.innerText = data.content;
+            document.getElementById(targetPaneId === 'pane1' ? 'header1' : 'header2').innerText = name;
+
+            updateStats();
+            loadFileList();
         }
 
         async function createNewFile() {
-            const name = prompt("Enter file name (e.g., doc.txt):");
-            if (!name) return;
-            await fetch('/api/files', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name })
-            });
-            loadFiles();
-        }
-
-        async function deleteFile(name) {
-            // Replaced alert with custom confirmation placeholder
-            const confirmed = confirm(`Delete ${name}?`);
-            if (!confirmed) return;
-            await fetch(`/api/file/${name}`, { method: 'DELETE' });
-            if (currentFile === name) {
-                closeTab({ stopPropagation: () => { } }, name);
+            const name = prompt("Filename (e.g. notes.txt):");
+            if (name) {
+                await apiCall('/api/files', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                await loadFileList();
+                openFile(name, activePaneId);
             }
-            loadFiles();
         }
 
-        async function renameFile(oldName) {
-            const newName = prompt("New name:", oldName);
-            if (!newName) return;
-            await fetch('/api/files', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+        async function renameFile(e, oldName) {
+            e.stopPropagation();
+            const newName = prompt("Rename to:", oldName);
+            if (!newName || newName === oldName) return;
+
+            await apiCall('/api/files', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newName, oldName })
             });
-            if (openFiles.includes(oldName)) {
-                openFiles[openFiles.indexOf(oldName)] = newName;
-                if (currentFile === oldName) currentFile = newName;
+
+            if (paneState.pane1.file === oldName) paneState.pane1.file = newName;
+            if (paneState.pane2.file === oldName) paneState.pane2.file = newName;
+
+            await loadFileList();
+            if (paneState.pane1.file === newName) openFile(newName, 'pane1');
+        }
+
+        async function deleteFile(e, name) {
+            e.stopPropagation();
+            if (confirm(`Delete ${name}?`)) {
+                await apiCall(`/api/file/${name}`, { method: 'DELETE' });
+                if (paneState.pane1.file === name) { paneState.pane1.editor.innerText = ''; paneState.pane1.file = null; document.getElementById('header1').innerText = 'No File'; }
+                if (paneState.pane2.file === name) { paneState.pane2.editor.innerText = ''; paneState.pane2.file = null; document.getElementById('header2').innerText = 'No File'; }
+                loadFileList();
             }
-            loadFiles();
-            renderTabs();
         }
 
-        // --- EDITOR LOGIC (Sync with Backend Rope) ---
+        async function saveToBackend(paneId) {
+            const file = paneState[paneId].file;
+            const text = paneState[paneId].editor.innerText;
+            if (!file) return;
 
-        // Helper function to force save immediately
-        async function saveCurrentState() {
-            if (!currentFile) return;
-
-            await fetch(`/api/file/${currentFile}/update`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: editor.innerText })
+            await apiCall(`/api/file/${file}/update`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
             });
-
-            debounceTimer = null; // Reset timer variable
+            log('Saved');
         }
 
-        editor.addEventListener('input', (e) => {
-            // Clear any pending save
-            if (debounceTimer) clearTimeout(debounceTimer);
+        // --- EDITOR EVENTS ---
+        ['editor1', 'editor2'].forEach(id => {
+            const ed = document.getElementById(id);
 
-            // Autocomplete Logic
-            const text = editor.innerText;
-            const lastWord = text.split(/[\s\n]+/).pop();
-            if (lastWord.length > 1) getSuggestions(lastWord);
-            else suggestionBox.style.display = 'none';
+            ed.addEventListener('click', () => setFocus(id === 'editor1' ? 'pane1' : 'pane2'));
 
-            // Set new debounce timer (500ms)
-            debounceTimer = setTimeout(() => {
-                saveCurrentState();
-                log('Saved to Backend Rope');
-            }, 500);
+            ed.addEventListener('input', () => {
+                const pId = id === 'editor1' ? 'pane1' : 'pane2';
+                setFocus(pId);
+                updateStats();
+                handleAutocomplete(ed);
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => saveToBackend(pId), 800);
+            });
         });
 
-        // --- AUTOCOMPLETE (Trie) ---
-        async function getSuggestions(prefix) {
-            const lowerPrefix = prefix.toLowerCase();
+        // --- UNDO / REDO ---
+        async function triggerUndo() {
+            const file = getActiveFile();
+            if (!file) return;
+            await saveToBackend(activePaneId);
+            const res = await apiCall(`/api/file/${file}/undo`, { method: 'POST' });
+            if (res.ok) {
+                const d = await res.json();
+                getActiveEditor().innerText = d.content;
+                log('Undone');
+            }
+        }
 
-            const res = await fetch('/api/autocomplete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prefix: lowerPrefix })
-            });
-            const data = await res.json();
+        async function triggerRedo() {
+            const file = getActiveFile();
+            if (!file) return;
+            await saveToBackend(activePaneId);
+            const res = await apiCall(`/api/file/${file}/redo`, { method: 'POST' });
+            if (res.ok) {
+                const d = await res.json();
+                getActiveEditor().innerText = d.content;
+                log('Redone');
+            }
+        }
 
-            if (data.suggestions.length > 0) {
-                // Get cursor position bounding box
-                const selection = window.getSelection();
-                if (selection.rangeCount === 0) return;
-                const rect = selection.getRangeAt(0).getBoundingClientRect();
+        // Check Spelling Function Removed
 
-                suggestionBox.style.left = rect.left + 'px';
-                suggestionBox.style.top = (rect.top + 20) + 'px';
-                suggestionBox.style.display = 'block';
+        // --- AUTOCOMPLETE UTILS ---
+        function handleAutocomplete(editor) {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+            const range = selection.getRangeAt(0);
+            const textPre = range.startContainer.textContent.slice(0, range.startOffset);
+            const match = textPre.match(/([a-zA-Z]{2,})$/);
 
-                suggestionBox.innerHTML = data.suggestions.map(s => {
-                    const textToInsert = s.replace(lowerPrefix, '');
+            if (match) {
+                currentPrefixStart = range.startOffset - match[0].length;
+                const prefix = match[0];
 
-                    return `<div class="suggestion-item" onclick="insertText('${textToInsert}')">${s}</div>`;
-                }).join('');
-
+                apiCall('/api/autocomplete', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prefix })
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.suggestions.length > 0) {
+                            const rect = range.getBoundingClientRect();
+                            suggestionBox.style.left = rect.left + 'px';
+                            suggestionBox.style.top = (rect.bottom + 5) + 'px';
+                            suggestionBox.style.display = 'block';
+                            suggestionBox.innerHTML = data.suggestions.map(s =>
+                                `<div class="suggestion-item" onmousedown="applySuggestion('${s}')">${s}</div>`
+                            ).join('');
+                        } else {
+                            suggestionBox.style.display = 'none';
+                        }
+                    });
             } else {
                 suggestionBox.style.display = 'none';
             }
         }
 
-        function insertText(text) {
-            // document.execCommand('insertText', ...) performs insertion and triggers input event naturally.
-            document.execCommand('insertText', false, text);
+        window.applySuggestion = function (fullWord) {
+            const editor = getActiveEditor();
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+
+            range.setStart(range.startContainer, currentPrefixStart);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(fullWord));
+            range.collapse(false);
+
             suggestionBox.style.display = 'none';
             editor.focus();
-        }
-
-        // --- SHORTCUTS & OPERATIONS ---
-        document.addEventListener('keydown', async (e) => {
-            // Check for Ctrl (or Cmd on Mac)
-            if (e.ctrlKey || e.metaKey) {
-                const key = e.key.toLowerCase();
-
-                // 1. Mandatory: Prevent native browser actions for Undo/Redo/Save
-                if (key === 's' || key === 'z' || key === 'y') {
-                    e.preventDefault();
-                }
-
-                if (key === 's') {
-                    if (debounceTimer) clearTimeout(debounceTimer); // Cancel pending
-                    await saveCurrentState(); // Force Save
-                    log('Saved (Ctrl+S)');
-                }
-
-                if (key === 'z') {
-                    triggerUndo();
-                }
-
-                if (key === 'y') {
-                    triggerRedo();
-                }
-
-                // Cut, Copy, Paste, Bold, Italic use browser's native document.execCommand
-                if (key === 'x') { document.execCommand('cut'); }
-                if (key === 'c') { document.execCommand('copy'); }
-                if (key === 'b') { document.execCommand('bold'); }
-                if (key === 'i') { document.execCommand('italic'); }
-                // Paste (Ctrl+V or Cmd+V) should generally be allowed natively if contentEditable is used, 
-                // but we block Ctrl+P since that is a print command.
-                if (key === 'p') { /* Note: Ctrl+P is typically Print. We keep it unhandled to avoid conflict */ }
-            }
-        });
-
-        async function triggerUndo() {
-            if (!currentFile) return;
-
-            // CRITICAL: Flush pending state (if any) to the Undo Stack before asking for the previous state.
-            if (debounceTimer) {
-                clearTimeout(debounceTimer);
-                await saveCurrentState();
-            }
-
-            const res = await fetch(`/api/file/${currentFile}/undo`, { method: 'POST' });
-            if (res.ok) {
-                const data = await res.json();
-                editor.innerText = data.content;
-                log("Undo performed (Stack Pop)");
-            } else {
-                log("Undo failed or stack empty.");
-            }
-        }
-
-        async function triggerRedo() {
-            if (!currentFile) return;
-
-            // Flush pending state (if any) to the Redo Stack before asking for the next state.
-            if (debounceTimer) {
-                clearTimeout(debounceTimer);
-                await saveCurrentState();
-            }
-
-            const res = await fetch(`/api/file/${currentFile}/redo`, { method: 'POST' });
-            if (res.ok) {
-                const data = await res.json();
-                editor.innerText = data.content;
-                log("Redo performed (Stack Push)");
-            } else {
-                log("Redo failed or stack empty.");
-            }
-        }
-
-        // --- SEARCH (Boyer-Moore) ---
-        async function performSearch() {
-            const pattern = document.getElementById('searchInput').value;
-            const text = editor.innerText;
-            if (!pattern) return;
-
-            const res = await fetch('/api/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, pattern })
-            });
-            const data = await res.json();
-
-            log(`Found ${data.indices.length} matches via Boyer-Moore`);
-
-            if (data.indices.length > 0) {
-                // Using alert as a message box placeholder
-                alert(`Pattern found at indices: ${data.indices.join(', ')}`);
-            } else {
-                alert("Not found");
-            }
-        }
-
-        function performReplace() {
-            const search = document.getElementById('searchInput').value;
-            const replace = document.getElementById('replaceInput').value;
-            if (!search) return;
-            editor.innerText = editor.innerText.replaceAll(search, replace);
-
-            // Trigger input to save changes to Rope
             editor.dispatchEvent(new Event('input'));
         }
 
-        function log(msg) {
-            document.getElementById('statusBar').innerText = msg;
-            console.log(msg);
+        // --- SHORTCUTS ---
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey) {
+                const k = e.key.toLowerCase();
+                if (['z', 'y', 's'].includes(k)) e.preventDefault();
+                if (k === 'z') triggerUndo();
+                if (k === 'y') triggerRedo();
+                if (k === 's') { saveToBackend(activePaneId); log('Saved'); }
+            }
+        });
+
+        // --- SEARCH ---
+        async function performSearch() {
+            const pattern = document.getElementById('searchInput').value;
+            if (!pattern) return;
+            const res = await apiCall('/api/search', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: getActiveEditor().innerText, pattern })
+            });
+            const data = await res.json();
+            if (data.indices.length > 0) alert(`Found ${data.indices.length} matches.`);
+            else alert('Not found');
         }
 
-        loadFiles();
+        function performReplace() {
+            const s = document.getElementById('searchInput').value;
+            const r = document.getElementById('replaceInput').value;
+            if (s) {
+                const ed = getActiveEditor();
+                ed.innerText = ed.innerText.replaceAll(s, r);
+                ed.dispatchEvent(new Event('input'));
+            }
+        }
+
+        function toggleTheme() {
+            const b = document.body;
+            b.setAttribute('data-theme', b.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+        }
+
+        function updateStats() {
+            const text = getActiveEditor().innerText;
+            document.getElementById('lineCount').innerText = text.split('\n').length;
+            document.getElementById('wordCount').innerText = text.trim() ? text.trim().split(/\s+/).length : 0;
+        }
+
+        function log(msg) { document.getElementById('statusMsg').innerText = msg; }
+
+        // Init
+        loadFileList().then(() => {
+            if (files.length > 0) openFile(files[0], 'pane1');
+            else if (useMock) openFile('demo.txt', 'pane1');
+        });
+
     </script>
 </body>
 
